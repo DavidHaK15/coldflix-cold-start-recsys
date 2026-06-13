@@ -8,6 +8,7 @@ backend/.venv/
 .pytest_cache/
 backend/data/ml-latest-small.zip
 backend/data/extracted/
+backend/wheels/
 
 # ---- Node / frontend ----
 frontend/node_modules/

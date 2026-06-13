@@ -1,0 +1,16 @@
+# Chạy LOCAL không vướng proxy: 1 container all-in-one (FastAPI + frontend tĩnh).
+# Yêu cầu chuẩn bị trước (trên host, mạng sạch):
+#   cd backend && pip download -r requirements.txt -d wheels \
+#       --platform manylinux2014_aarch64 --python-version 3.12 --only-binary=:all:
+#   cd frontend && npm install && npm run build
+# Rồi:  docker compose -f docker-compose.offline.yml up --build
+# Mở:   http://localhost:8080   (API docs: http://localhost:8080/docs)
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: coldflix
+    ports:
+      - "8080:8000"
+    restart: unless-stopped

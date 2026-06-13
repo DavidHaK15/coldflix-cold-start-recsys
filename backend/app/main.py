@@ -144,3 +144,25 @@ def recommend(request: RecommendRequest) -> list[RecommendationOut]:
 @app.get("/api/evaluation/learning-curve", response_model=LearningCurveResponse)
 def learning_curve(sample_users: int = 40) -> LearningCurveResponse:
     return evaluation_service.learning_curve(sample_users=min(max(sample_users, 5), 100))
+
+
+# --- Phục vụ frontend đã build (tùy chọn) --------------------------------------
+# Chỉ bật khi tồn tại thư mục static (vd trong Docker all-in-one). Dev không ảnh hưởng.
+import os
+from pathlib import Path
+
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
+_STATIC_DIR = Path(os.getenv("STATIC_DIR", "/app/static"))
+if _STATIC_DIR.is_dir():
+    _assets = _STATIC_DIR / "assets"
+    if _assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=_assets), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def spa_fallback(full_path: str) -> FileResponse:
+        candidate = _STATIC_DIR / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(_STATIC_DIR / "index.html")  # SPA: mọi route khác → index.html

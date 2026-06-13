@@ -17,6 +17,16 @@ từng chiến lược, và một trang **Nghiên cứu** định lượng hiệ
 
 ---
 
+## 🖼️ Giao diện
+
+| Onboarding (cold-start hook) | Trang chủ kiểu Netflix |
+|---|---|
+| ![](docs/screenshots/01-onboarding.png) | ![](docs/screenshots/02-home.png) |
+| **Modal chi tiết + chấm điểm** | **Trang Nghiên cứu (learning curve)** |
+| ![](docs/screenshots/03-detail-modal.png) | ![](docs/screenshots/05-insights.png) |
+
+---
+
 ## 🚀 Chạy nhanh
 
 ### Cách 1 — Docker (1 lệnh, khuyến nghị cho mạng thường)
@@ -29,7 +39,25 @@ docker compose up --build
 > ⚠️ **Lưu ý môi trường có proxy:** nếu máy bạn buộc Docker đi qua một MITM proxy
 > (vd Docker Desktop đặt `HTTP Proxy = http.docker.internal:3128`), bước cài gói
 > trong container có thể lỗi *hash mismatch* hoặc timeout. Khi đó hãy tắt proxy
-> trong **Docker Desktop → Settings → Resources → Proxies**, hoặc dùng Cách 2.
+> trong **Docker Desktop → Settings → Resources → Proxies**, hoặc dùng Cách 1b / Cách 2.
+
+### Cách 1b — Docker offline (né proxy: all-in-one, cài gói từ wheel dựng sẵn)
+
+Dùng khi proxy chặn việc tải gói trong container. Một container FastAPI phục vụ
+cả API lẫn frontend tĩnh, cài Python từ wheel build sẵn trên host:
+
+```bash
+# Chuẩn bị (host, mạng sạch):
+cd backend && pip download -r requirements.txt -d wheels \
+    --platform manylinux2014_aarch64 --python-version 3.12 --only-binary=:all:
+cd ../frontend && npm install && npm run build
+# Chạy:
+cd .. && docker compose -f docker-compose.offline.yml up --build
+# Mở http://localhost:8080
+```
+
+> 💡 Cần vài GB dung lượng trống cho Docker. Nếu gặp `input/output error` khi
+> build → **ổ đĩa đã đầy**, hãy giải phóng dung lượng trước.
 
 ### Cách 2 — Chạy dev trực tiếp (đã kiểm chứng hoạt động)
 

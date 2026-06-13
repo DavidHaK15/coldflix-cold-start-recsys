@@ -1,0 +1,18 @@
+# Build context cho Dockerfile.local (all-in-one). Chỉ giữ thứ cần COPY:
+# backend/{wheels,requirements.txt,app,data} và frontend/dist.
+.git
+.DS_Store
+**/__pycache__
+*.pyc
+backend/.venv
+backend/.pytest_cache
+backend/tests
+backend/scripts
+backend/data/ml-latest-small.zip
+backend/data/extracted
+frontend/node_modules
+frontend/src
+frontend/public
+slides
+docs
+*.md

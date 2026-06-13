@@ -1,0 +1,28 @@
+# All-in-one image cho chạy LOCAL khi mạng/proxy chặn việc tải gói trong container.
+# FastAPI phục vụ cả REST API lẫn frontend (dist) đã build sẵn trên host.
+#   - Dùng base python:3.12 (thường đã cache sẵn)
+#   - Cài Python offline từ ./backend/wheels (dựng trước bằng: pip download ... -d wheels)
+#   - Copy ./frontend/dist (dựng trước bằng: npm run build)
+# Build:  docker compose -f docker-compose.offline.yml up --build
+# Mở:     http://localhost:8080
+# BASE_IMAGE có thể trỏ tới image đã cache local (vd coldflix-python:local) để
+# tránh BuildKit hỏi registry khi mạng/proxy chặn.
+ARG BASE_IMAGE=python:3.12
+FROM ${BASE_IMAGE}
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    STATIC_DIR=/app/static
+
+WORKDIR /app
+
+COPY backend/wheels /tmp/wheels
+COPY backend/requirements.txt .
+RUN pip install --no-index --find-links=/tmp/wheels -r requirements.txt && rm -rf /tmp/wheels
+
+COPY backend/app ./app
+COPY backend/data ./data
+COPY frontend/dist ./static
+
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
