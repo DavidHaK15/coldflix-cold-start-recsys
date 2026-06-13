@@ -19,7 +19,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from app.config import DATA_DIR, MF_FACTORS, MIN_USER_INTERACTIONS
 
 # Cột metadata tuỳ chọn — dữ liệu thật (MovieLens) có thể không có, nên đều có giá trị mặc định.
-META_COLUMNS = ["year", "runtime", "maturity", "tagline", "overview"]
+META_COLUMNS = ["year", "runtime", "maturity", "tagline", "overview", "poster_url"]
 
 
 @dataclass
@@ -66,8 +66,13 @@ class DatasetService:
         genre_list = sorted({genre for genres in movies["genres_list"] for genre in genres})
 
         for column in META_COLUMNS:
+            is_text = column in {"maturity", "tagline", "overview", "poster_url"}
             if column not in movies.columns:
-                movies[column] = "" if column in {"maturity", "tagline", "overview"} else 0
+                movies[column] = "" if is_text else 0
+            elif is_text:
+                movies[column] = movies[column].fillna("")  # ô rỗng -> "" (tránh hiện "nan")
+            else:
+                movies[column] = movies[column].fillna(0)
 
         user_histories: dict[int, dict[int, float]] = {}
         for row in ratings.itertuples(index=False):
@@ -168,6 +173,7 @@ class DatasetService:
             "maturity": str(getattr(row, "maturity", "") or ""),
             "tagline": str(getattr(row, "tagline", "") or ""),
             "overview": str(getattr(row, "overview", "") or ""),
+            "poster_url": str(getattr(row, "poster_url", "") or ""),
             "popularity_score": float(bundle.movie_popularity.get(mid, 0.0)),
             "avg_rating": round(bundle.movie_avg_rating.get(mid, 0.0), 2),
             "rating_count": int(bundle.movie_rating_count.get(mid, 0)),

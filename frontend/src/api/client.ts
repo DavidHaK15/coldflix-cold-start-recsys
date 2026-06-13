@@ -7,6 +7,7 @@ export interface Movie {
   maturity: string;
   tagline: string;
   overview: string;
+  poster_url: string;
   popularity_score: number;
   avg_rating: number;
   rating_count: number;

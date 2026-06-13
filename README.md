@@ -13,17 +13,17 @@ từng chiến lược, và một trang **Nghiên cứu** định lượng hiệ
 |---|---|
 | **Frontend** | React 19 + Vite + TypeScript + Recharts (giao diện Netflix, poster sinh bằng CSS, offline) |
 | **Backend** | FastAPI + scikit-learn (TF-IDF, Item-CF, TruncatedSVD) |
-| **Dữ liệu** | Synthetic có cấu trúc sở thích: 280 phim · 500 người dùng · 13.5K đánh giá |
+| **Dữ liệu** | 76 phim **thật** nổi tiếng (poster + mô tả thật từ Wikipedia) · 500 người dùng mô phỏng · ~13.4K đánh giá |
 
 ---
 
 ## 🖼️ Giao diện
 
-| Onboarding (cold-start hook) | Trang chủ kiểu Netflix |
+| Onboarding (cold-start hook) | Trang chủ kiểu Netflix (poster phim thật) |
 |---|---|
-| ![](docs/screenshots/01-onboarding.png) | ![](docs/screenshots/02-home.png) |
+| ![](docs/screenshots/01-onboarding.png) | ![](docs/screenshots/03-home.png) |
 | **Modal chi tiết + chấm điểm** | **Trang Nghiên cứu (learning curve)** |
-| ![](docs/screenshots/03-detail-modal.png) | ![](docs/screenshots/05-insights.png) |
+| ![](docs/screenshots/04-detail-modal.png) | ![](docs/screenshots/06-insights.png) |
 
 ---
 
@@ -105,8 +105,8 @@ ICT/
 │   │   ├── config.py
 │   │   ├── models/schemas.py
 │   │   └── services/        # dataset, recommender, evaluation
-│   ├── data/sample/         # movies.csv, ratings.csv (synthetic)
-│   ├── scripts/             # generate_synthetic.py, download_movielens.py
+│   ├── data/sample/         # movies.csv (phim thật + poster_url), ratings.csv (mô phỏng)
+│   ├── scripts/             # generate_real.py (poster Wikipedia), generate_synthetic.py
 │   ├── tests/               # pytest
 │   └── Dockerfile
 ├── frontend/                # React + Vite (giao diện Netflix)

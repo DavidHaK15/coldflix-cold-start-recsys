@@ -70,6 +70,7 @@ class RecommenderService:
                     maturity=info["maturity"],
                     tagline=info["tagline"],
                     overview=info["overview"],
+                    poster_url=info["poster_url"],
                     avg_rating=info["avg_rating"],
                     rating_count=info["rating_count"],
                 )

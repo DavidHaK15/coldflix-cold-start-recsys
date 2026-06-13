@@ -139,7 +139,7 @@ export function Insights({ stats }: Props) {
         <ul>
           <li><b>Lúc “lạnh” (0 tương tác):</b> Popularity là baseline mạnh nhất vì không cần dữ liệu cá nhân.</li>
           <li><b>Khi có vài tương tác:</b> Onboarding + Item-CF và DropoutNet vượt dần Popularity.</li>
-          <li><b>Khi đủ ấm (≥10–20):</b> DropoutNet (hybrid) đạt Recall@10 cao nhất nhờ kết hợp content và collaborative.</li>
+          <li><b>Khi đủ ấm (≥10–20):</b> các phương pháp dựa collaborative (Onboarding + Item-CF, DropoutNet) đạt Recall@10 cao nhất.</li>
           <li><b>Hệ quả thiết kế:</b> nên chuyển dần trọng số từ content/popularity sang collaborative theo lượng tương tác.</li>
         </ul>
       </section>

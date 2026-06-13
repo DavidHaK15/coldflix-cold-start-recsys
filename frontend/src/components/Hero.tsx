@@ -12,9 +12,12 @@ export function Hero({ movie, reason }: Props) {
   const { openMovie } = useUI();
   const { background, accent } = posterStyle(movie.title, movie.genres);
   const cleanTitle = movie.title.replace(/\s*\(\d{4}\)\s*$/, "");
+  const heroStyle = movie.poster_url
+    ? { backgroundImage: `url(${movie.poster_url})`, backgroundSize: "cover", backgroundPosition: "center 20%" }
+    : { background };
 
   return (
-    <section className="hero" style={{ background }}>
+    <section className="hero" style={heroStyle}>
       <div className="hero-scrim" />
       <div className="hero-inner">
         {reason && (

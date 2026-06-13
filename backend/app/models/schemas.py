@@ -16,6 +16,7 @@ class MovieOut(BaseModel):
     maturity: str = ""
     tagline: str = ""
     overview: str = ""
+    poster_url: str = ""
     popularity_score: float = 0.0
     avg_rating: float = 0.0
     rating_count: int = 0
@@ -32,6 +33,7 @@ class RecommendationOut(BaseModel):
     maturity: str = ""
     tagline: str = ""
     overview: str = ""
+    poster_url: str = ""
     avg_rating: float = 0.0
     rating_count: int = 0
 

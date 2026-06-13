@@ -65,6 +65,13 @@
   .bar-chart .track { background: #000; border-radius: 6px; height: 22px; overflow: hidden; }
   .bar-chart .fill { height: 100%; border-radius: 6px; }
   .bar-chart .val { color: var(--green); font-weight: 700; font-size: 14px; }
+  /* demo screenshots */
+  .demo-pair { display: flex; gap: 20px; justify-content: center; align-items: center; margin-top: 10px; }
+  .demo-shot { max-height: 62vh; max-width: 100%; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .demo-pair .demo-shot { max-height: 56vh; max-width: 47%; }
+  .demo-cap { color: var(--muted); font-size: clamp(13px,1.5vw,18px); margin-top: 14px; }
+  .demo-cap b { color: var(--green); }
+  .step-badge { display:inline-block; background: var(--brand); color:#fff; border-radius:999px; padding:2px 12px; font-size:13px; font-weight:700; margin-right:8px; }
 </style>
 </head>
 <body>
@@ -99,7 +106,7 @@
         <p>Cold-start là tình huống hệ thống <b>thiếu dữ liệu tương tác</b> cho một
         thực thể (người dùng hoặc sản phẩm) để đưa ra khuyến nghị đáng tin cậy.</p>
         <p class="sub" style="margin-top:12px;">Ma trận tương tác của ta có độ thưa
-        <span class="accent">~90%</span> — minh hoạ rõ thách thức này.</p>
+        <span class="accent">~65%</span> — minh hoạ rõ thách thức này.</p>
       </div>
     </div>
   </section>
@@ -191,7 +198,7 @@
       <div class="flow">→</div>
       <div class="box"><b>RecSys core</b><br/><span>scikit-learn<br/>TF-IDF · CF · SVD</span></div>
       <div class="flow">→</div>
-      <div class="box"><b>Dữ liệu</b><br/><span>280 phim · 500 user<br/>13.5K ratings</span></div>
+      <div class="box"><b>Dữ liệu</b><br/><span>76 phim thật · 500 user<br/>13.4K ratings</span></div>
     </div>
     <p class="sub" style="margin-top:26px;">Đóng gói Docker: nginx (FE, proxy <code>/api</code>) + uvicorn (BE). Một lệnh <code>docker compose up</code>.</p>
   </section>
@@ -220,14 +227,14 @@
     <span class="pill">Kết quả</span>
     <h2>Learning Curve — Recall@10 tại 20 tương tác</h2>
     <div class="bar-chart">
-      <span class="name">DropoutNet</span><div class="track"><div class="fill" style="width:100%;background:#fbbf24;"></div></div><span class="val">0.132</span>
-      <span class="name">Onboarding+Item-CF</span><div class="track"><div class="fill" style="width:79%;background:#34d399;"></div></div><span class="val">0.104</span>
-      <span class="name">Popularity</span><div class="track"><div class="fill" style="width:55%;background:#38bdf8;"></div></div><span class="val">0.073</span>
-      <span class="name">Content-based</span><div class="track"><div class="fill" style="width:38%;background:#818cf8;"></div></div><span class="val">0.050</span>
+      <span class="name">Onboarding+Item-CF</span><div class="track"><div class="fill" style="width:100%;background:#34d399;"></div></div><span class="val">0.267</span>
+      <span class="name">DropoutNet</span><div class="track"><div class="fill" style="width:97%;background:#fbbf24;"></div></div><span class="val">0.258</span>
+      <span class="name">Popularity</span><div class="track"><div class="fill" style="width:73%;background:#38bdf8;"></div></div><span class="val">0.196</span>
+      <span class="name">Content-based</span><div class="track"><div class="fill" style="width:38%;background:#818cf8;"></div></div><span class="val">0.101</span>
     </div>
     <div class="kpi" style="margin-top:26px;">
-      <div><b>0.073</b><span>Popularity — phẳng, không học</span></div>
-      <div><b>+81%</b><span>DropoutNet vượt Popularity khi warm</span></div>
+      <div><b>0.196</b><span>Popularity — phẳng, không học</span></div>
+      <div><b>+36%</b><span>Onboarding+Item-CF vượt Popularity khi warm</span></div>
     </div>
   </section>
 
@@ -243,17 +250,56 @@
     </ul>
   </section>
 
-  <!-- 12 — Demo -->
+  <!-- 12 — Demo các bước UI -->
   <section class="slide">
-    <span class="pill">Demo</span>
-    <h2>Trải nghiệm trong ColdFlix</h2>
-    <ul>
-      <li><b>Onboarding:</b> người dùng mới chọn thể loại + chấm vài phim (cold-start trực quan).</li>
-      <li><b>Trang chủ:</b> hàng "Gợi ý cho bạn" đổi tức thì khi chuyển chiến lược trong <b>Chế độ nghiên cứu</b>.</li>
-      <li><b>"Vì bạn đã xem…":</b> Item-CF gợi ý phim tương tự.</li>
-      <li><b>Trang Nghiên cứu:</b> learning curve + bảng so sánh phương pháp.</li>
-    </ul>
-    <p class="sub" style="margin-top:18px;">→ Mở <code>http://localhost:8080</code> (Docker) hoặc <code>:5173</code> (dev).</p>
+    <span class="pill">Demo — các bước UI</span>
+    <h2>Trải nghiệm thật trong ColdFlix</h2>
+    <p class="sub">Phim thật, poster thật. 5 bước demo trực tiếp trên giao diện:</p>
+    <div class="cols" style="margin-top:18px;">
+      <ul>
+        <li><span class="step-badge">1</span> Onboarding: chọn thể loại yêu thích</li>
+        <li><span class="step-badge">2</span> Chấm điểm vài phim (active learning)</li>
+        <li><span class="step-badge">3</span> Trang chủ cá nhân hoá theo chiến lược</li>
+      </ul>
+      <ul>
+        <li><span class="step-badge">4</span> Modal chi tiết + "Phim tương tự" (Item-CF)</li>
+        <li><span class="step-badge">5</span> Chế độ nghiên cứu &amp; trang Insights</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 12a — Bước 1+2 -->
+  <section class="slide">
+    <h2><span class="step-badge">1·2</span> Onboarding — chính là tình huống cold-start</h2>
+    <div class="demo-pair">
+      <img class="demo-shot" src="img/01-onboarding.png" alt="Onboarding chọn thể loại" />
+      <img class="demo-shot" src="img/02-onboarding-rate.png" alt="Chấm điểm phim" />
+    </div>
+    <p class="demo-cap">Người dùng <b>mới</b> chọn thể loại + chấm vài phim đa dạng → tín hiệu đầu tiên để thoát cold-start.</p>
+  </section>
+
+  <!-- 12b — Bước 3 -->
+  <section class="slide">
+    <h2><span class="step-badge">3</span> Trang chủ — gợi ý cá nhân hoá (poster phim thật)</h2>
+    <div class="demo-pair"><img class="demo-shot" src="img/03-home.png" alt="Trang chủ ColdFlix" /></div>
+    <p class="demo-cap">Hero + hàng <b>"Gợi ý cho bạn"</b> đổi tức thì theo chiến lược; carousel theo thể loại như Netflix.</p>
+  </section>
+
+  <!-- 12c — Bước 4 -->
+  <section class="slide">
+    <h2><span class="step-badge">4</span> Modal chi tiết + chấm điểm + Item-CF</h2>
+    <div class="demo-pair"><img class="demo-shot" src="img/04-detail-modal.png" alt="Modal chi tiết phim" /></div>
+    <p class="demo-cap">Mô tả thật, chấm sao (huấn luyện gợi ý), hàng <b>"Phim tương tự (Item-based CF)"</b>.</p>
+  </section>
+
+  <!-- 12d — Bước 5 -->
+  <section class="slide">
+    <h2><span class="step-badge">5</span> Chế độ nghiên cứu &amp; trang Insights</h2>
+    <div class="demo-pair">
+      <img class="demo-shot" src="img/05-research-panel.png" alt="Chế độ nghiên cứu" />
+      <img class="demo-shot" src="img/06-insights.png" alt="Trang Insights learning curve" />
+    </div>
+    <p class="demo-cap">Đổi chiến lược/người dùng → gợi ý đổi tức thì · trang <b>Nghiên cứu</b>: learning curve + bảng so sánh.</p>
   </section>
 
   <!-- 13 — Hạn chế -->
