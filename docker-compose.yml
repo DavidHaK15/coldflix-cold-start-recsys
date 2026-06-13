@@ -1,0 +1,23 @@
+# Chạy local cả Backend (FastAPI) + Frontend (nginx) bằng 1 lệnh:
+#   docker compose up --build
+# Mở http://localhost:8080
+services:
+  backend:
+    build: ./backend
+    container_name: coldflix-backend
+    environment:
+      - CORS_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
+    expose:
+      - "8000"
+    ports:
+      - "8000:8000"   # mở để xem trực tiếp API docs tại http://localhost:8000/docs
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: coldflix-frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    restart: unless-stopped

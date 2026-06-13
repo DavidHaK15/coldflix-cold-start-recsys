@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ColdFlix — Chủ đề 7: Cold-Start trong Hệ thống Khuyến nghị</title>
+<style>
+  /* Slide deck tự chứa — chạy offline, không cần thư viện ngoài.
+     Điều hướng: ← → / Space / Home-End. Nhấn F để toàn màn hình. */
+  :root {
+    --bg: #0b0b0f; --panel: #15151c; --surface: #1b1b24;
+    --text: #f4f4f6; --muted: #9a9aa6; --brand: #e50914; --green: #5ad17a;
+    --border: rgba(255,255,255,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text); overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .deck { height: 100vh; width: 100vw; position: relative; }
+  .slide {
+    position: absolute; inset: 0; display: none;
+    flex-direction: column; justify-content: center;
+    padding: 6vh 8vw; opacity: 0; transition: opacity 0.3s ease;
+  }
+  .slide.active { display: flex; opacity: 1; }
+  h1 { font-size: clamp(32px, 5vw, 60px); line-height: 1.1; margin-bottom: 18px; }
+  h2 { font-size: clamp(26px, 3.6vw, 42px); margin-bottom: 24px; color: #fff; }
+  h2 .accent, .accent { color: var(--brand); }
+  h3 { font-size: clamp(18px, 2vw, 24px); margin: 14px 0 8px; color: var(--green); }
+  p, li { font-size: clamp(15px, 1.7vw, 21px); color: #d8d8e0; line-height: 1.55; }
+  ul { margin-left: 1.2em; } li { margin-bottom: 10px; }
+  .eyebrow { color: var(--brand); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-size: 14px; margin-bottom: 16px; }
+  .sub { color: var(--muted); font-size: clamp(15px,1.8vw,20px); }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
+  .cols-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .card h3 { margin-top: 0; }
+  .pill { display: inline-block; background: rgba(229,9,20,0.16); color: #ff5b66; border-radius: 999px; padding: 3px 12px; font-size: 13px; font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; font-size: clamp(12px,1.35vw,17px); }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+  tr:hover td { background: var(--surface); }
+  code { background: #000; color: #9ad; padding: 2px 7px; border-radius: 5px; font-size: 0.95em; }
+  .formula { background: #000; border-left: 3px solid var(--brand); border-radius: 8px; padding: 14px 18px; margin: 10px 0; font-family: ui-monospace, Menlo, monospace; font-size: clamp(13px,1.5vw,18px); color: #cfe3ff; }
+  .arch { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
+  .arch .box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 22px; text-align: center; min-width: 160px; }
+  .arch .box b { color: #fff; } .arch .box span { color: var(--muted); font-size: 14px; }
+  .arch .flow { color: var(--brand); font-size: 28px; }
+  .kpi { display:flex; gap: 26px; flex-wrap: wrap; margin-top: 10px; }
+  .kpi div { background: var(--surface); border:1px solid var(--border); border-radius: 12px; padding: 16px 22px; }
+  .kpi b { display:block; font-size: clamp(26px,3.4vw,40px); color: var(--brand); }
+  .kpi span { color: var(--muted); font-size: 14px; }
+  .best { color: var(--green); font-weight: 700; }
+  .logo { color: var(--brand); font-weight: 800; letter-spacing: 2px; }
+  .logo b { color: #fff; }
+  /* chrome */
+  .progress { position: fixed; top: 0; left: 0; height: 4px; background: var(--brand); transition: width 0.3s; z-index: 10; }
+  .counter { position: fixed; bottom: 18px; right: 24px; color: var(--muted); font-size: 14px; z-index: 10; }
+  .hint { position: fixed; bottom: 18px; left: 24px; color: #4a4a55; font-size: 13px; z-index: 10; }
+  .footer-tag { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); color: #3a3a44; font-size: 12px; z-index: 10; }
+  .bar-chart { display: grid; grid-template-columns: 140px 1fr 60px; gap: 8px 14px; align-items: center; margin-top: 14px; }
+  .bar-chart .name { color: #d8d8e0; font-size: clamp(13px,1.4vw,17px); }
+  .bar-chart .track { background: #000; border-radius: 6px; height: 22px; overflow: hidden; }
+  .bar-chart .fill { height: 100%; border-radius: 6px; }
+  .bar-chart .val { color: var(--green); font-weight: 700; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 — Title -->
+  <section class="slide">
+    <div class="eyebrow">Xu hướng mới trong ICT · CHKHMT15A1 · Chủ đề 7</div>
+    <h1>Xử lý <span class="accent">Cold-Start</span><br/>trong Hệ thống Khuyến nghị</h1>
+    <p class="sub">Demo &amp; nghiên cứu qua ứng dụng <span class="logo">COLD<b>FLIX</b></span> — một "Netflix thu nhỏ" so sánh 5 chiến lược.</p>
+    <p class="sub" style="margin-top:28px;">Full-stack: React + Vite · FastAPI + scikit-learn · Docker</p>
+  </section>
+
+  <!-- 2 — Vấn đề -->
+  <section class="slide">
+    <span class="pill">Bài toán</span>
+    <h2>Cold-Start là gì &amp; vì sao khó?</h2>
+    <div class="cols">
+      <div>
+        <p>Hệ khuyến nghị dựa vào <b>lịch sử tương tác</b> để cá nhân hoá. Nhưng khi
+        chưa có lịch sử, mô hình collaborative "đóng băng".</p>
+        <h3>Hệ quả thực tế</h3>
+        <ul>
+          <li>Người dùng mới nhận gợi ý kém → rời bỏ sớm</li>
+          <li>Phim/sản phẩm mới không bao giờ được hiển thị</li>
+          <li>Vòng lặp "rich-get-richer", thiếu đa dạng</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Định nghĩa</h3>
+        <p>Cold-start là tình huống hệ thống <b>thiếu dữ liệu tương tác</b> cho một
+        thực thể (người dùng hoặc sản phẩm) để đưa ra khuyến nghị đáng tin cậy.</p>
+        <p class="sub" style="margin-top:12px;">Ma trận tương tác của ta có độ thưa
+        <span class="accent">~90%</span> — minh hoạ rõ thách thức này.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 — Phân loại -->
+  <section class="slide">
+    <span class="pill">Phân loại</span>
+    <h2>Ba dạng Cold-Start</h2>
+    <div class="cols-3">
+      <div class="card"><h3>New User</h3><p>Người dùng mới, chưa có hành vi. Cần khai thác tín hiệu phụ (nhân khẩu học, onboarding).</p></div>
+      <div class="card"><h3>New Item</h3><p>Sản phẩm mới, chưa ai tương tác. Dựa vào thuộc tính nội dung (metadata).</p></div>
+      <div class="card"><h3>New System</h3><p>Hệ thống vừa khởi chạy, dữ liệu nghèo nàn toàn cục. Thường khởi đầu bằng popularity.</p></div>
+    </div>
+    <p class="sub" style="margin-top:24px;">ColdFlix tập trung <b>New User</b> (onboarding) và xử lý được cả <b>New Item</b> qua content-based.</p>
+  </section>
+
+  <!-- 4 — Nghiên cứu liên quan -->
+  <section class="slide">
+    <span class="pill">Hiện trạng &amp; nghiên cứu liên quan</span>
+    <h2>Các hướng giải quyết trên thực tế</h2>
+    <table>
+      <thead><tr><th>Hướng tiếp cận</th><th>Ý tưởng cốt lõi</th><th>Ưu / Nhược</th><th>Tham chiếu</th></tr></thead>
+      <tbody>
+        <tr><td><b>Popularity</b></td><td>Gợi ý phổ biến nhất</td><td>Đơn giản, mạnh lúc lạnh / không cá nhân hoá</td><td>Baseline</td></tr>
+        <tr><td><b>Content-based</b></td><td>Khớp thuộc tính ↔ hồ sơ sở thích</td><td>Xử lý item mới / phụ thuộc metadata</td><td>Schein 2002</td></tr>
+        <tr><td><b>Active learning / Onboarding</b></td><td>Hỏi vài đánh giá khởi đầu</td><td>Thu tín hiệu nhanh / tăng ma sát</td><td>Rashid 2002</td></tr>
+        <tr><td><b>Hybrid sâu (DropoutNet)</b></td><td>Học biểu diễn lai, dropout mô phỏng cold</td><td>Chuyển tiếp mượt / phức tạp</td><td>Volkovs 2017</td></tr>
+        <tr><td><b>Meta-learning (MeLU)</b></td><td>Few-shot thích nghi user mới</td><td>Ít dữ liệu / khó huấn luyện</td><td>Lee 2019</td></tr>
+      </tbody>
+    </table>
+    <p class="sub" style="margin-top:18px;">→ Không có "viên đạn bạc": mỗi hướng mạnh ở một giai đoạn khác nhau của vòng đời dữ liệu.</p>
+  </section>
+
+  <!-- 5 — Động lực -->
+  <section class="slide">
+    <span class="pill">Động lực</span>
+    <h2>Khoảng trống &amp; mục tiêu của ColdFlix</h2>
+    <ul>
+      <li>Các nghiên cứu thường đánh giá <b>rời rạc</b> từng phương pháp trên benchmark khác nhau → khó so sánh trực quan.</li>
+      <li>ColdFlix đặt <b>5 chiến lược trên cùng một dữ liệu &amp; cùng một thước đo</b> (Recall@10), trực quan hoá bằng learning curve theo số tương tác.</li>
+      <li>Gắn nghiên cứu vào một <b>sản phẩm thật</b> (giao diện Netflix) để thấy tác động đến trải nghiệm người dùng mới.</li>
+    </ul>
+  </section>
+
+  <!-- 6 — 5 chiến lược -->
+  <section class="slide">
+    <span class="pill">Phương pháp</span>
+    <h2>5 chiến lược triển khai</h2>
+    <table>
+      <thead><tr><th>Chiến lược</th><th>Loại cold-start</th><th>Kỹ thuật</th></tr></thead>
+      <tbody>
+        <tr><td><b>Popularity-based</b></td><td>New User</td><td>Đếm số người dùng, log-scale</td></tr>
+        <tr><td><b>Content-based Bootstrapping</b></td><td>New User &amp; Item</td><td>TF-IDF thể loại + cosine</td></tr>
+        <tr><td><b>Onboarding + Item-CF</b></td><td>New User</td><td>Active learning → Item-based CF</td></tr>
+        <tr><td><b>DropoutNet (đơn giản hoá)</b></td><td>New User &amp; Item</td><td>Content + SVD, trọng số α thích nghi</td></tr>
+        <tr><td><b>Item-CF (Warm)</b></td><td>Warm User</td><td>Đối chứng khi hết cold-start</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 7 — Công thức -->
+  <section class="slide">
+    <span class="pill">Công thức</span>
+    <h2>Bên trong các mô hình</h2>
+    <div class="cols">
+      <div>
+        <h3>Popularity</h3>
+        <div class="formula">score(i) = log(|U_i| + 1)</div>
+        <h3>Content-based (cosine)</h3>
+        <div class="formula">sim(p, i) = (p · v_i) / (‖p‖ ‖v_i‖)</div>
+      </div>
+      <div>
+        <h3>Item-based CF</h3>
+        <div class="formula">ŝ(u,i) = Σ_j sim(i,j)·r(u,j) / Σ_j |sim(i,j)|</div>
+        <h3>DropoutNet (hybrid)</h3>
+        <div class="formula">score = α·content + (1−α)·collaborative<br/>α giảm dần khi số tương tác tăng</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 — Kiến trúc -->
+  <section class="slide">
+    <span class="pill">Kiến trúc hệ thống</span>
+    <h2>ColdFlix end-to-end</h2>
+    <div class="arch">
+      <div class="box"><b>Frontend</b><br/><span>React + Vite<br/>Giao diện Netflix</span></div>
+      <div class="flow">→</div>
+      <div class="box"><b>REST API</b><br/><span>FastAPI<br/>/recommend, /catalog…</span></div>
+      <div class="flow">→</div>
+      <div class="box"><b>RecSys core</b><br/><span>scikit-learn<br/>TF-IDF · CF · SVD</span></div>
+      <div class="flow">→</div>
+      <div class="box"><b>Dữ liệu</b><br/><span>280 phim · 500 user<br/>13.5K ratings</span></div>
+    </div>
+    <p class="sub" style="margin-top:26px;">Đóng gói Docker: nginx (FE, proxy <code>/api</code>) + uvicorn (BE). Một lệnh <code>docker compose up</code>.</p>
+  </section>
+
+  <!-- 9 — Đánh giá -->
+  <section class="slide">
+    <span class="pill">Thực nghiệm</span>
+    <h2>Phương pháp đánh giá</h2>
+    <div class="cols">
+      <div>
+        <h3>Dữ liệu có cấu trúc sở thích</h3>
+        <p>Ratings sinh từ <b>sở thích tiềm ẩn theo thể loại</b> + chất lượng phim → cá nhân hoá thực sự có ý nghĩa (không nhiễu thuần tuý).</p>
+        <h3>Giao thức cold-start</h3>
+        <p>Lấy người dùng warm, <b>ẩn bớt lịch sử</b>, chỉ lộ N tương tác đầu (0→20), dự đoán phần giữ lại (holdout).</p>
+      </div>
+      <div class="card">
+        <h3>Thước đo: Recall@10</h3>
+        <div class="formula">Recall@10 = |Top10 ∩ Holdout| / min(10, |Holdout|)</div>
+        <p class="sub">Vẽ <b>learning curve</b>: Recall@10 theo số tương tác ban đầu, trung bình trên nhiều người dùng.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 — Kết quả -->
+  <section class="slide">
+    <span class="pill">Kết quả</span>
+    <h2>Learning Curve — Recall@10 tại 20 tương tác</h2>
+    <div class="bar-chart">
+      <span class="name">DropoutNet</span><div class="track"><div class="fill" style="width:100%;background:#fbbf24;"></div></div><span class="val">0.132</span>
+      <span class="name">Onboarding+Item-CF</span><div class="track"><div class="fill" style="width:79%;background:#34d399;"></div></div><span class="val">0.104</span>
+      <span class="name">Popularity</span><div class="track"><div class="fill" style="width:55%;background:#38bdf8;"></div></div><span class="val">0.073</span>
+      <span class="name">Content-based</span><div class="track"><div class="fill" style="width:38%;background:#818cf8;"></div></div><span class="val">0.050</span>
+    </div>
+    <div class="kpi" style="margin-top:26px;">
+      <div><b>0.073</b><span>Popularity — phẳng, không học</span></div>
+      <div><b>+81%</b><span>DropoutNet vượt Popularity khi warm</span></div>
+    </div>
+  </section>
+
+  <!-- 11 — Thảo luận -->
+  <section class="slide">
+    <span class="pill">Thảo luận</span>
+    <h2>Đối chiếu với các nghiên cứu</h2>
+    <ul>
+      <li><b>Lúc lạnh (0 tương tác):</b> Popularity thắng — khớp kết luận kinh điển rằng baseline phi cá nhân hoá khó bị đánh bại khi chưa có dữ liệu.</li>
+      <li><b>Khi ấm dần:</b> Onboarding + DropoutNet vượt lên — xác nhận giá trị của active learning (Rashid 2002) và hybrid (Volkovs 2017).</li>
+      <li><b>Content-based</b> yếu vì chỉ dùng thể loại thô — đúng với nhận định của Schein 2002 rằng chất lượng metadata quyết định.</li>
+      <li><b>Hàm ý thiết kế:</b> chuyển trọng số <code>α</code> từ content/popularity → collaborative theo lượng tương tác (đúng cơ chế DropoutNet).</li>
+    </ul>
+  </section>
+
+  <!-- 12 — Demo -->
+  <section class="slide">
+    <span class="pill">Demo</span>
+    <h2>Trải nghiệm trong ColdFlix</h2>
+    <ul>
+      <li><b>Onboarding:</b> người dùng mới chọn thể loại + chấm vài phim (cold-start trực quan).</li>
+      <li><b>Trang chủ:</b> hàng "Gợi ý cho bạn" đổi tức thì khi chuyển chiến lược trong <b>Chế độ nghiên cứu</b>.</li>
+      <li><b>"Vì bạn đã xem…":</b> Item-CF gợi ý phim tương tự.</li>
+      <li><b>Trang Nghiên cứu:</b> learning curve + bảng so sánh phương pháp.</li>
+    </ul>
+    <p class="sub" style="margin-top:18px;">→ Mở <code>http://localhost:8080</code> (Docker) hoặc <code>:5173</code> (dev).</p>
+  </section>
+
+  <!-- 13 — Hạn chế -->
+  <section class="slide">
+    <span class="pill">Hạn chế &amp; hướng phát triển</span>
+    <h2>Còn gì phía trước?</h2>
+    <div class="cols">
+      <div><h3>Hạn chế</h3><ul>
+        <li>Dữ liệu synthetic (chưa phải hành vi thật)</li>
+        <li>DropoutNet bản đơn giản hoá (chưa huấn luyện neural đầy đủ)</li>
+        <li>Content chỉ dùng thể loại</li>
+      </ul></div>
+      <div><h3>Hướng phát triển</h3><ul>
+        <li>Dùng MovieLens thật + đặc trưng phong phú (đạo diễn, diễn viên, mô tả)</li>
+        <li>Bổ sung meta-learning (MeLU) &amp; đánh giá NDCG, diversity</li>
+        <li>A/B test trên người dùng thật</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- 14 — Kết luận -->
+  <section class="slide">
+    <span class="pill">Kết luận</span>
+    <h2>Tổng kết</h2>
+    <ul>
+      <li>Cold-start là thách thức cốt lõi; <b>không một chiến lược nào thắng mọi giai đoạn</b>.</li>
+      <li>Giải pháp tốt = <b>lai &amp; thích nghi</b>: popularity/content lúc lạnh → collaborative khi ấm.</li>
+      <li>ColdFlix chứng minh điều đó bằng <b>một sản phẩm chạy được</b> + đánh giá định lượng nhất quán.</li>
+    </ul>
+    <p style="margin-top:40px; font-size: clamp(22px,3vw,34px);" class="logo">COLD<b>FLIX</b> &nbsp;·&nbsp; <span style="color:var(--muted);font-weight:400;font-size:0.6em;">Cảm ơn &amp; Q/A</span></p>
+  </section>
+
+</div>
+
+<div class="counter" id="counter"></div>
+<div class="hint">← → / Space điều hướng · F toàn màn hình</div>
+<div class="footer-tag">Chủ đề 7 — Cold-Start Recommendation System</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let idx = 0;
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    document.getElementById('counter').textContent = (idx + 1) + ' / ' + slides.length;
+    document.getElementById('progress').style.width = ((idx + 1) / slides.length * 100) + '%';
+  }
+  function go(n) { idx = Math.max(0, Math.min(slides.length - 1, n)); render(); }
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); go(idx + 1); }
+    else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); go(idx - 1); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+    else if (e.key.toLowerCase() === 'f') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+  });
+  document.addEventListener('click', (e) => { if (!e.target.closest('a')) go(idx + 1); });
+  render();
+</script>
+</body>
+</html>
