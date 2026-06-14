@@ -44,6 +44,14 @@
   tr:hover td { background: var(--surface); }
   code { background: #000; color: #9ad; padding: 2px 7px; border-radius: 5px; font-size: 0.95em; }
   .formula { background: #000; border-left: 3px solid var(--brand); border-radius: 8px; padding: 14px 18px; margin: 10px 0; font-family: ui-monospace, Menlo, monospace; font-size: clamp(13px,1.5vw,18px); color: #cfe3ff; }
+  /* công thức toán typeset (không phải LaTeX thô) */
+  .math { font-family: Georgia, "Times New Roman", serif; font-size: clamp(17px,2vw,27px); color: #eaf1fb; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; line-height: 1.25; }
+  .math i { font-style: italic; }
+  .frac { display: inline-flex; flex-direction: column; text-align: center; vertical-align: middle; margin: 0 6px; }
+  .frac > .num { border-bottom: 2px solid currentColor; padding: 2px 14px 5px; }
+  .frac > .den { padding: 5px 14px 2px; }
+  .math sub { font-size: 0.66em; }
+  .math .note { flex-basis: 100%; margin-top: 10px; font-family: -apple-system, sans-serif; font-style: normal; color: var(--muted); font-size: clamp(12px,1.3vw,15px); }
   .arch { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
   .arch .box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px 22px; text-align: center; min-width: 160px; }
   .arch .box b { color: #fff; } .arch .box span { color: var(--muted); font-size: 14px; }
@@ -174,15 +182,30 @@
     <div class="cols">
       <div>
         <h3>Popularity</h3>
-        <div class="formula">score(i) = log(|U_i| + 1)</div>
+        <div class="formula math">score(<i>i</i>) = log( |<i>U</i><sub>i</sub>| + 1 )</div>
         <h3>Content-based (cosine)</h3>
-        <div class="formula">sim(p, i) = (p · v_i) / (‖p‖ ‖v_i‖)</div>
+        <div class="formula math">
+          sim(<i>p</i>, <i>i</i>) =
+          <span class="frac">
+            <span class="num"><i>p</i> · <i>v</i><sub>i</sub></span>
+            <span class="den">‖<i>p</i>‖ · ‖<i>v</i><sub>i</sub>‖</span>
+          </span>
+        </div>
       </div>
       <div>
         <h3>Item-based CF</h3>
-        <div class="formula">ŝ(u,i) = Σ_j sim(i,j)·r(u,j) / Σ_j |sim(i,j)|</div>
+        <div class="formula math">
+          ŝ(<i>u</i>, <i>i</i>) =
+          <span class="frac">
+            <span class="num">Σ<sub>j∈N(i)</sub> sim(<i>i</i>,<i>j</i>) · <i>r</i><sub>u,j</sub></span>
+            <span class="den">Σ<sub>j∈N(i)</sub> |sim(<i>i</i>,<i>j</i>)|</span>
+          </span>
+        </div>
         <h3>DropoutNet (hybrid)</h3>
-        <div class="formula">score = α·content + (1−α)·collaborative<br/>α giảm dần khi số tương tác tăng</div>
+        <div class="formula math">
+          <span style="white-space:nowrap">score(<i>i</i>) = α · content + (1 − α) · collab</span>
+          <span class="note">α giảm dần khi số tương tác tăng (1.0 → 0.25)</span>
+        </div>
       </div>
     </div>
   </section>
@@ -216,7 +239,13 @@
       </div>
       <div class="card">
         <h3>Thước đo: Recall@10</h3>
-        <div class="formula">Recall@10 = |Top10 ∩ Holdout| / min(10, |Holdout|)</div>
+        <div class="formula math">
+          Recall@10 =
+          <span class="frac">
+            <span class="num">| Top10 ∩ Holdout |</span>
+            <span class="den">min( 10, |Holdout| )</span>
+          </span>
+        </div>
         <p class="sub">Vẽ <b>learning curve</b>: Recall@10 theo số tương tác ban đầu, trung bình trên nhiều người dùng.</p>
       </div>
     </div>
