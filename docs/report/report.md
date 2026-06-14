@@ -1,7 +1,7 @@
 ---
 title: "Xử lý vấn đề Cold-Start trong Hệ thống Khuyến nghị"
 subtitle: "Chủ đề 7 — Môn Xu hướng mới trong ICT (CHKHMT15A1)"
-author: "Nhóm thực hiện — Đồ án ColdFlix"
+author: "Hà Bảo Anh — MSHV: 25004321"
 date: "2026"
 lang: vi
 ---
